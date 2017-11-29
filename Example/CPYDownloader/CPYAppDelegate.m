@@ -7,12 +7,44 @@
 //
 
 #import "CPYAppDelegate.h"
+#import <CPYDownloader/CPYDownloader.h>
+
+@interface CPYAppDelegate ()
+
+@end
 
 @implementation CPYAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    NSArray *arr = @[
+                     @"https://github.com/AFNetworking/AFNetworking/archive/master.zip",
+                     @"https://wx2.sinaimg.cn/mw690/625aa557gy1flvutnodiaj22bc17su0y.jpg",
+                     @"https://wx1.sinaimg.cn/mw690/b7cd25degy1flvv7pel1lj21kw11x10e.jpg",
+                     @"https://wx2.sinaimg.cn/mw690/b7cd25degy1flvv7rh8f5j21kw11xjz6.jpg",
+                     @"https://wx3.sinaimg.cn/mw690/61e89b74ly1flvv1ysznkj20c80lqac1.jpg",
+                     @"https://wx1.sinaimg.cn/mw690/677e4af2ly1flvg1c3wmsj20j60j5dj7.jpg"
+                     ];
+    NSMutableArray *receipts = [NSMutableArray array];
+    for (NSString *url in arr) {
+        CPYDownloadReceipt *receipt = [[CPYDownloader defaultInstance] downloadFileWithURL:[NSURL URLWithString:url] progress:^(NSProgress * _Nonnull progress, NSURLRequest * _Nullable request) {
+            
+            NSLog(@"progress %@", progress);
+        } validation:^BOOL(NSURL * _Nonnull fileURL, NSURLResponse * _Nullable response) {
+            return YES;
+        } destination:^NSURL * _Nullable(NSURL * _Nonnull URL, NSURLResponse * _Nullable response) {
+            return nil;
+        } success:^(NSURLRequest * _Nullable request, NSHTTPURLResponse * _Nullable response, NSURL * _Nonnull URL) {
+            
+        } failure:^(NSURLRequest * _Nullable request, NSHTTPURLResponse * _Nullable response, NSError * _Nonnull error) {
+            
+        }];
+        [receipts addObject:receipt];
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [[CPYDownloader defaultInstance] cancelDownloadWithReceipt:receipts.firstObject];
+    });
+    
     return YES;
 }
 
