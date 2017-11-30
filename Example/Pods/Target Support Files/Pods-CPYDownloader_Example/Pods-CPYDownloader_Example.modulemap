@@ -1,0 +1,6 @@
+framework module Pods_CPYDownloader_Example {
+  umbrella header "Pods-CPYDownloader_Example-umbrella.h"
+
+  export *
+  module * { export * }
+}

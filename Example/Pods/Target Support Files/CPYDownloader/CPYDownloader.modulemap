@@ -1,0 +1,6 @@
+framework module CPYDownloader {
+  umbrella header "CPYDownloader-umbrella.h"
+
+  export *
+  module * { export * }
+}
