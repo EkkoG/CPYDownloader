@@ -236,6 +236,8 @@
                         handler.failureBlock(request, (NSHTTPURLResponse *)response, error);
                     });
                 }
+                [self finishTask:task];
+                [self startNextTask];
                 return;
             }
             for (CPYDownloaderResponseHandler *handler in task.responseHandlers) {
