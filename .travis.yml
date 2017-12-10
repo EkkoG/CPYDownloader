@@ -10,5 +10,5 @@ before_install:
 - gem install cocoapods # Since Travis is not always on latest version
 - pod install --project-directory=Example
 script:
-- set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace Example/CPYDownloader.xcworkspace -scheme CPYDownloader-Example -sdk iPhoneSimulator11.2.sdk ONLY_ACTIVE_ARCH=NO | xcpretty
-- pod lib lint
+- set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace Example/CPYDownloader.xcworkspace -scheme CPYDownloader-Example -sdk iPhoneSimulator11.0.sdk ONLY_ACTIVE_ARCH=NO | xcpretty
+- pod lib lint --allow-warnings
