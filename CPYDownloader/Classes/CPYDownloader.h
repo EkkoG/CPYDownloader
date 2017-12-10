@@ -7,6 +7,11 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum : NSUInteger {
+    CPYDownloaderLogLevelNone,
+    CPYDownloaderLogLevelDebug,
+} CPYDownloaderLogLevel;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @class CPYDownloadReceipt;
@@ -59,6 +64,8 @@ typedef void (^CPYDownloadFailureBlock)(NSURLRequest * _Nullable request, NSHTTP
 @property (nonatomic, strong) dispatch_queue_t callbackQueue;
 
 @property (nonatomic, assign) NSInteger remainingTask;
+
+@property (nonatomic, assign) CPYDownloaderLogLevel logLevel;
 
 + (instancetype)defaultInstance;
 

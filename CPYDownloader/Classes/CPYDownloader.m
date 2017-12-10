@@ -4,6 +4,9 @@
 //
 //  Created by ciel on 2017/11/26.
 //
+#define CPYNSLog(frmt, ...) NSLog((frmt), ##__VA_ARGS__)
+
+#define LOG_MAYBE(frmt, ...)    do{ if(self.logLevel > CPYDownloaderLogLevelNone) CPYNSLog((frmt), ##__VA_ARGS__); } while(0)
 
 #import "CPYDownloader.h"
 #import <AFNetworking/AFNetworking.h>
@@ -246,6 +249,7 @@
                         dispatch_async(self.callbackQueue, ^{
                             handler.successBlock(request, (NSHTTPURLResponse *)response, request.URL);
                         });
+                        LOG_MAYBE(@"Task completed %@", task.URL);
                         return;
                     }
                     
@@ -254,18 +258,21 @@
                         dispatch_async(self.callbackQueue, ^{
                             handler.successBlock(request, (NSHTTPURLResponse *)response, request.URL);
                         });
+                        LOG_MAYBE(@"Task completed %@", task.URL);
                         return;
                     }
                     
                     NSError *fileManagerError;
                     if ([[NSFileManager defaultManager] fileExistsAtPath:destinationURL.path]) {
                         [[NSFileManager defaultManager] removeItemAtPath:destinationURL.path error:&fileManagerError];
+                        LOG_MAYBE(@"Destination path has file existed, remove it %@", destinationURL.path);
                     }
                     
                     if (fileManagerError) {
                         dispatch_async(self.callbackQueue, ^{
                             handler.failureBlock(request, (NSHTTPURLResponse *)response, [NSError errorWithDomain:CPYDownloaderErrorDomain code:CPYDownloaderErrorFailToMoveFile userInfo:fileManagerError.userInfo]);
                         });
+                        LOG_MAYBE(@"Remove failed, error %@", fileManagerError.localizedFailureReason);
                         return;
                     }
                     
@@ -274,11 +281,14 @@
                         dispatch_async(self.callbackQueue, ^{
                             handler.failureBlock(request, (NSHTTPURLResponse *)response, [NSError errorWithDomain:CPYDownloaderErrorDomain code:CPYDownloaderErrorFailToMoveFile userInfo:fileManagerError.userInfo]);
                         });
+                        LOG_MAYBE(@"Move failed, error %@", fileManagerError.localizedFailureReason);
                         return;
                     }
                     
+                    LOG_MAYBE(@"Move success, task %@", task.URL);
                     dispatch_async(self.callbackQueue, ^{
                         handler.successBlock(request, (NSHTTPURLResponse *)response, request.URL);
+                        LOG_MAYBE(@"Task completed %@", task.URL);
                     });
                 };
                 
@@ -299,6 +309,7 @@
                         NSError *error = [NSError errorWithDomain:CPYDownloaderErrorDomain code:CPYDownloaderErrorInvalid userInfo:userInfo];
                         handler.failureBlock(request, (NSHTTPURLResponse *)response, error);
                     });
+                    LOG_MAYBE(@"File validation falied, task %@", task.URL);
                     break;
                 }
                 
@@ -333,6 +344,7 @@
         }
         
         if (task.responseHandlers.count == 0 && task.task.state == NSURLSessionTaskStateSuspended) {
+            LOG_MAYBE(@"Task caceled %@", task.URL);
             [task.task cancel];
             [self removeTaskWithURL:URL];
         }
@@ -342,6 +354,7 @@
 #pragma mark - private
 
 - (void)finishTask:(CPYDownloaderTask *)task {
+    LOG_MAYBE(@"Task finished %@", task.URL);
     dispatch_sync(self.synchronizationQueue, ^{
         if (self.activeDownloadTaskCount > 0) {
             self.activeDownloadTaskCount -= 1;
@@ -358,6 +371,7 @@
         while (self.queuedMergedTasks.count > 0) {
             CPYDownloaderTask *task = [self dequeueTask];
             if (task.task.state == NSURLSessionTaskStateSuspended) {
+                LOG_MAYBE(@"Task start next task %@", task.URL);
                 [self startTask:task];
                 break;
             }
@@ -368,6 +382,7 @@
 - (void)startTask:(CPYDownloaderTask *)task {
     [task.task resume];
     self.activeDownloadTaskCount += 1;
+    LOG_MAYBE(@"Task started %@", task.URL);
 }
 
 - (void)enqueueTask:(CPYDownloaderTask *)task {
@@ -382,11 +397,13 @@
         default:
             break;
     }
+    LOG_MAYBE(@"Task enqueued %@", task.URL);
 }
 
 - (CPYDownloaderTask *)dequeueTask {
     CPYDownloaderTask *task = self.queuedMergedTasks.firstObject;
     [self.queuedMergedTasks removeObject:task];
+    LOG_MAYBE(@"Task dequeued %@", task.URL);
     return task;
 }
 
@@ -410,11 +427,13 @@
 - (void)addMergedTasks:(CPYDownloaderTask *)mergedTask {
     self.mergedTasks[mergedTask.URL.absoluteString] = mergedTask;
     self.remainingTask += 1;
+    LOG_MAYBE(@"Task added %@", mergedTask.URL);
 }
 
 - (CPYDownloaderTask *)removeMergedTaskWithURL:(NSURL *)URL {
     CPYDownloaderTask *task = [self taskForURL:URL];
     self.mergedTasks[URL.absoluteString] = nil;
+    LOG_MAYBE(@"Task removed %@", URL);
     return task;
 }
 
@@ -422,12 +441,14 @@
     [self willChangeValueForKey:@"activeDownloadTaskCount"];
     _activeDownloadTaskCount = activeDownloadTaskCount;
     [self didChangeValueForKey:@"activeDownloadTaskCount"];
+    LOG_MAYBE(@"Actived task %ld", activeDownloadTaskCount);
 }
 
 - (void)setRemainingTask:(NSInteger)remainingTask {
     [self willChangeValueForKey:@"remainingTask"];
     _remainingTask = remainingTask;
     [self didChangeValueForKey:@"remainingTask"];
+    LOG_MAYBE(@"Remaining task %ld", remainingTask);
 }
 
 - (dispatch_queue_t)callbackQueue {

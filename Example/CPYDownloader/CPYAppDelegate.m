@@ -27,6 +27,7 @@
                      ];
     NSMutableArray *receipts = [NSMutableArray array];
     for (NSString *url in arr) {
+        [[CPYDownloader defaultInstance] setLogLevel:CPYDownloaderLogLevelDebug];
         CPYDownloadReceipt *receipt = [[CPYDownloader defaultInstance] downloadFileWithURL:[NSURL URLWithString:url] progress:^(NSProgress * _Nonnull progress, NSURLRequest * _Nullable request) {
             
             NSLog(@"progress %@", progress);
