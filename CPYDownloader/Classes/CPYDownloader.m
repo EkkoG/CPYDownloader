@@ -185,7 +185,7 @@
         CPYDownloaderResponseHandler *handler = [[CPYDownloaderResponseHandler alloc] initWithIdentifier:taskIdentifier progress:progress validation:validation destination:destination success:success failure:failure];
         [mergedTask addResponseHandler:handler];
         
-        self.mergedTasks[URL.absoluteString] = mergedTask;
+        [self addMergedTasks:mergedTask];
 
         if ([self isActiveRequestCountBelowMaximumLimit]) {
             [self startTask:mergedTask];
@@ -402,14 +402,32 @@
     __block CPYDownloaderTask *task;
     dispatch_sync(self.synchronizationQueue, ^{
         task = [self removeMergedTaskWithURL:URL];
+        self.remainingTask -= 1;
     });
     return task;
+}
+
+- (void)addMergedTasks:(CPYDownloaderTask *)mergedTask {
+    self.mergedTasks[mergedTask.URL.absoluteString] = mergedTask;
+    self.remainingTask += 1;
 }
 
 - (CPYDownloaderTask *)removeMergedTaskWithURL:(NSURL *)URL {
     CPYDownloaderTask *task = [self taskForURL:URL];
     self.mergedTasks[URL.absoluteString] = nil;
     return task;
+}
+
+- (void)setActiveDownloadTaskCount:(NSInteger)activeDownloadTaskCount {
+    [self willChangeValueForKey:@"activeDownloadTaskCount"];
+    _activeDownloadTaskCount = activeDownloadTaskCount;
+    [self didChangeValueForKey:@"activeDownloadTaskCount"];
+}
+
+- (void)setRemainingTask:(NSInteger)remainingTask {
+    [self willChangeValueForKey:@"remainingTask"];
+    _remainingTask = remainingTask;
+    [self didChangeValueForKey:@"remainingTask"];
 }
 
 - (dispatch_queue_t)callbackQueue {

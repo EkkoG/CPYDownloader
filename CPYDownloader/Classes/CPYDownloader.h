@@ -58,6 +58,8 @@ typedef void (^CPYDownloadFailureBlock)(NSURLRequest * _Nullable request, NSHTTP
 
 @property (nonatomic, strong) dispatch_queue_t callbackQueue;
 
+@property (nonatomic, assign) NSInteger remainingTask;
+
 + (instancetype)defaultInstance;
 
 - (instancetype)init;
